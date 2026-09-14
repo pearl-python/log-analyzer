@@ -1,3 +1,5 @@
+import csv
+
 #log読み込み関数
 def load_logs(file_path):
     logs = []
@@ -35,7 +37,7 @@ def get_level_logs(logs, level):
 
     return matched_logs
 
-#エラーレベル取得関数
+# ログレベル取得関数
 def get_level(log):
     parts = log.split()
     if len(parts) < 3:
@@ -43,17 +45,36 @@ def get_level(log):
     else:    
         return parts[2] 
 
-#logファイル出力
-logs,unique_level,invalid_logs = load_logs("sample/app.log")
+def save_results(file_path, logs, invalid_logs):
+    with open(file_path,"w",newline="",encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(["level", "log"])
+        for log in logs:
+            level = get_level(log)
+            writer.writerow([
+                level,
+                log
+            ])
+        for log in invalid_logs:
+            writer.writerow([
+                "invalid",
+                log
+            ])
 
-if logs is None:
-    print("エラーのため終了します")
-else:
-    for level in unique_level:
-        level_logs = get_level_logs(logs,level)
-        print(f"{level}件数: {len(level_logs)}")
-        for log in level_logs:
+if __name__ == "__main__":
+    #logファイル出力
+    logs,unique_level,invalid_logs = load_logs("sample/app.log")
+
+    if logs is None:
+        print("エラーのため終了します")
+    else:
+        for level in unique_level:
+            level_logs = get_level_logs(logs,level)
+            print(f"{level}件数: {len(level_logs)}")
+            for log in level_logs:
+                print(log)
+        print(f"不正ログ件数：{len(invalid_logs)}")
+        for log in invalid_logs:
             print(log)
-    print(f"不正ログ件数：{len(invalid_logs)}")
-    for log in invalid_logs:
-        print(log)
+
+        save_results("analysis.csv",logs,invalid_logs)
